@@ -34,7 +34,10 @@ module.exports = app;
 // only start server if this file is the entry point
 if (require.main === module) {
   const PORT = process.env.PORT || 5000;
-  const BASE_URL = process.env.APP_URL || `http://localhost:${PORT}`;
+  const BASE_URL =
+    process.env.APP_URL ||
+    process.env.RENDER_EXTERNAL_URL ||
+    `http://localhost:${PORT}`;
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
