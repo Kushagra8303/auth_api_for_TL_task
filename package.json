@@ -23,8 +23,9 @@
   },
   "devDependencies": {
     "jest": "^29.7.0",
-    "supertest": "^6.3.3",
+    "markdown-pdf": "^11.0.0",
     "mongodb-memory-server": "^8.8.0",
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "supertest": "^6.3.3"
   }
 }
