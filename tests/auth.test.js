@@ -81,4 +81,11 @@ describe("Auth API", () => {
     expect(res.statusCode).toBe(404);
     expect(res.body.message).toMatch(/user not found/i);
   });
+
+  it("should expose service info", async () => {
+    const res = await request(app).get("/info");
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("port");
+    expect(res.body).toHaveProperty("baseUrl");
+  });
 });
