@@ -20,7 +20,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://auth-api-for-tl-task.onrender.com/api/auth"
+  baseURL: "https://auth-api-for-tl-task-1.onrender.com/api/auth/admin/users/api/auth"
 });
 
 export const getUsers = () => API.get("/admin/users");
