@@ -38,7 +38,8 @@ app.use((err, req, res, next) => {
 
 // if a React build exists, serve it (useful in production or when testing locally)
 const path = require("path");
-const buildPath = path.join(__dirname, "frontend", "build");
+// note: directory renamed to 'admin-panel' per project conventions
+const buildPath = path.join(__dirname, "admin-panel", "build");
 if (fs.existsSync(buildPath)) {
   app.use(express.static(buildPath));
   // all non-API requests should serve the React index, letting client routing handle it

@@ -2,10 +2,10 @@ const request = require("supertest");
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 
-// create a minimal frontend build folder before the server is required
+// create a minimal admin-panel build folder before the server is required
 const fs = require('fs');
 const path = require('path');
-const buildDir = path.join(__dirname, '..', 'frontend', 'build');
+const buildDir = path.join(__dirname, '..', 'admin-panel', 'build');
 fs.mkdirSync(buildDir, { recursive: true });
 fs.writeFileSync(path.join(buildDir, 'index.html'), '<html><body>hello</body></html>');
 
@@ -37,7 +37,7 @@ afterAll(async () => {
 afterAll(() => {
   const fs = require('fs');
   const path = require('path');
-  const buildDir = path.join(__dirname, '..', 'frontend', 'build');
+  const buildDir = path.join(__dirname, '..', 'admin-panel', 'build');
   fs.rmSync(buildDir, { recursive: true, force: true });
 });
 
