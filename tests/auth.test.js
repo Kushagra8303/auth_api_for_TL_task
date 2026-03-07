@@ -2,6 +2,13 @@ const request = require("supertest");
 const mongoose = require("mongoose");
 const { MongoMemoryServer } = require("mongodb-memory-server");
 
+// create a minimal frontend build folder before the server is required
+const fs = require('fs');
+const path = require('path');
+const buildDir = path.join(__dirname, '..', 'frontend', 'build');
+fs.mkdirSync(buildDir, { recursive: true });
+fs.writeFileSync(path.join(buildDir, 'index.html'), '<html><body>hello</body></html>');
+
 let app;
 let server;
 let mongod;
@@ -24,6 +31,14 @@ afterAll(async () => {
   await mongoose.disconnect();
   if (mongod) await mongod.stop();
   if (server && server.close) server.close();
+});
+
+
+afterAll(() => {
+  const fs = require('fs');
+  const path = require('path');
+  const buildDir = path.join(__dirname, '..', 'frontend', 'build');
+  fs.rmSync(buildDir, { recursive: true, force: true });
 });
 
 describe("Auth API", () => {
@@ -50,7 +65,13 @@ describe("Auth API", () => {
     expect(res.body.message).toMatch(/already exists/);
   });
 
-  it("should login with correct credentials", async () => {
+  it("should return 400 if required signup fields are missing", async () => {
+    const res = await request(app).post("/api/auth/signup").send({ email: "x@x.com" });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toMatch(/name|password/i);
+  });
+
+  it("should login with correct credentials and record timestamp", async () => {
     await request(app)
       .post("/api/auth/signup")
       .send({ name: "Login", email: "login@example.com", password: "secret" });
@@ -62,6 +83,9 @@ describe("Auth API", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toMatch(/login successful/i);
     expect(res.body.user).toHaveProperty("email", "login@example.com");
+    expect(res.body.user).toHaveProperty("lastLogin");
+    // ensure lastLogin is a valid date string
+    expect(new Date(res.body.user.lastLogin).toString()).not.toMatch(/Invalid/);
   });
 
   it("should reject incorrect password", async () => {
@@ -71,6 +95,12 @@ describe("Auth API", () => {
 
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toMatch(/invalid password/i);
+  });
+
+  it("should return 400 if login fields are missing", async () => {
+    const res = await request(app).post("/api/auth/login").send({ email: "login@example.com" });
+    expect(res.statusCode).toBe(400);
+    expect(res.body.message).toMatch(/password/i);
   });
 
   it("should return 404 for non-existent user", async () => {
@@ -87,5 +117,39 @@ describe("Auth API", () => {
     expect(res.statusCode).toBe(200);
     expect(res.body).toHaveProperty("port");
     expect(res.body).toHaveProperty("baseUrl");
+  });
+
+  it("should serve React build at root when available", async () => {
+    const res = await request(app).get("/");
+    expect(res.statusCode).toBe(200);
+    expect(res.text).toMatch(/hello/); // our dummy index.html contains 'hello'
+  });
+
+  it("admin endpoint should list users", async () => {
+    // create two users and trigger logins
+    await request(app)
+      .post("/api/auth/signup")
+      .send({ name: "A", email: "a@example.com", password: "1" });
+    await request(app)
+      .post("/api/auth/signup")
+      .send({ name: "B", email: "b@example.com", password: "1" });
+
+    await request(app)
+      .post("/api/auth/login")
+      .send({ email: "a@example.com", password: "1" });
+
+    const res = await request(app).get("/api/auth/admin/users");
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("users");
+    expect(Array.isArray(res.body.users)).toBe(true);
+    expect(res.body.users.length).toBeGreaterThanOrEqual(2);
+    // users should contain createdAt and lastLogin fields
+    const sample = res.body.users[0];
+    expect(sample).toHaveProperty("createdAt");
+    // lastLogin may be absent when undefined; accept either case or a valid string
+    if (sample.lastLogin !== undefined) {
+      expect(typeof sample.lastLogin).toBe('string');
+    }
+
   });
 });

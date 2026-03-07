@@ -16,7 +16,16 @@ const userSchema = new mongoose.Schema({
   password:{
     type:String,
     required:true
-  }
+  },
+
+  // track the last login time and history for auditing/admin panel
+  lastLogin: {
+    type: Date,
+  },
+
+  loginHistory: [{
+    type: Date,
+  }],
 
 },{timestamps:true});
 

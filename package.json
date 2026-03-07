@@ -8,7 +8,10 @@
     "test": "jest --runInBand"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "<rootDir>/admin-panel/"
+    ]
   },
   "keywords": [],
   "author": "",
